@@ -64,13 +64,14 @@ def main():
 
     # 写入CSV文件
     with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['TopicArn', 'SubscriptionArn', 'Protocol', 'Endpoint', 'Publishers']
+        fieldnames = ['TopicName', 'TopicArn', 'SubscriptionArn', 'Protocol', 'Endpoint', 'Publishers']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
         # 遍历每个主题
         for topic in topics:
             topic_arn = topic['TopicArn']
+            topic_name = topic_arn.split(':')[-1]  # 从ARN中提取topic名字
 
             # 获取订阅者
             subscriptions = get_subscriptions_for_topic(sns_client, topic_arn)
@@ -88,6 +89,7 @@ def main():
             # 如果没有订阅者，至少写入主题信息
             if not subscriptions:
                 writer.writerow({
+                    'TopicName': topic_name,
                     'TopicArn': topic_arn,
                     'SubscriptionArn': '',
                     'Protocol': '',
@@ -98,6 +100,7 @@ def main():
                 # 为每个订阅者写入一行
                 for sub in subscriptions:
                     writer.writerow({
+                        'TopicName': topic_name,
                         'TopicArn': topic_arn,
                         'SubscriptionArn': sub.get('SubscriptionArn', ''),
                         'Protocol': sub.get('Protocol', ''),
